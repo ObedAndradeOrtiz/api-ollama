@@ -1,0 +1,20 @@
+{
+  "preguntas": [
+    {
+      "pregunta": "¿Cuáles son los horarios de atención?",
+      "respuesta": "Estamos abiertos de lunes a sábado de 11:00 AM a 10:00 PM."
+    },
+    {
+      "pregunta": "¿Tienen opciones vegetarianas?",
+      "respuesta": "Sí, ofrecemos hamburguesas vegetarianas y ensaladas frescas."
+    },
+    {
+      "pregunta": "Que se llama la hamburgueseria?",
+      "respuesta": "Nos llamamos Hmaburguesas King"
+    },
+    {
+      "pregunta": "Tienen hamburguesas de carne?",
+      "respuesta": "Si, hoy tenemos promo de 2x1 de hmaburguesa doble de carne"
+    }
+  ]
+}
