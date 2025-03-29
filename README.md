@@ -1,6 +1,15 @@
 # api-ollama
 Creando una Api para respuestas automaticas de un restaurante.
 
+Debes tener instalado node > 18.0.0
+
+Debes instalar en tu carpeta estas opciones:
+
+- npm install express body-parser axios
+
+Una vez instalado usas este comando en tu terminal de tu carpeta acutal:
+
+- node server.js
 
 Para entrenar la inteligencia artificial debes usar este link como POST en postman:
 
