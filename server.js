@@ -4,9 +4,13 @@ const fs = require("fs");
 const axios = require("axios");
 const app = express();
 const PORT = 3000;
+const cors = require('cors'); 
 const OLLAMA_API = "http://localhost:11434/api/generate";
 app.use(express.json());
 const PREGUNTAS_FILE = "preguntas.json"; 
+app.use(cors({
+    origin: 'http://localhost:5173'  // Permite solicitudes desde React
+  }));
 function cargarPreguntas() {
     try {
         if (!fs.existsSync(PREGUNTAS_FILE)) {
@@ -27,7 +31,9 @@ function guardarPreguntas(preguntasData) {
         console.error("Error al guardar las preguntas:", error);
     }
 }
+
 let preguntasData = cargarPreguntas();
+
 app.post("/entrenar", (req, res) => {
     try {
         const { pregunta, respuesta } = req.body;
@@ -49,22 +55,46 @@ app.post("/entrenar", (req, res) => {
         return res.status(500).json({ error: "Error interno del servidor" });
     }
 });
-const CONTEXTO = `Esta es una hamburguesería se llama King, especializada en brindar un excelente servicio.
-Trata a los clientes con respeto y cortesía. Responde solo sobre temas relacionados con saludo, menú, promociones y horarios, los horarios son de 18:00 hasta las 23:00.`;
+
+const CONTEXTO = `
+Eres un asistente de pedidos para el restaurante King. Tu trabajo es atender a los clientes amablemente, como si fueras un mesero virtual. 
+Tu rol es:
+- Saludar según la hora (buenos días, buenas tardes, buenas noches).
+- Preguntar qué desea ordenar.
+- Si pide un plato como "pollo", ofrecer una bebida.
+- Si acepta, preguntar qué tamaño de bebida desea (pequeña, mediana, grande).
+- Ofrecer algo adicional, como postre o promociones.
+- Si el cliente pregunta por promociones, dile que hay una promoción de "dos pollos con dos gaseosas pequeñas y un postre".
+- Responde solo sobre saludos, menú, promociones y pedidos. No respondas temas fuera del restaurante.
+El horario de atención es de 18:00 a 23:00.
+`;
+
 app.post("/preguntar", async (req, res) => {
     const { cliente_id, pregunta } = req.body;
     if (!cliente_id || !pregunta) {
         return res.status(400).json({ error: "Faltan datos" });
     }
+
     const contextoCompleto = CONTEXTO + "\n\n" + preguntasData.preguntas
         .map(p => `Pregunta: ${p.pregunta}\nRespuesta: ${p.respuesta}`)
         .join("\n\n");
+
+    const promptFinal = `
+Contexto del restaurante:
+${contextoCompleto}
+
+Cliente dice: ${pregunta}
+
+Responde como si fueras el mesero del restaurante.
+`;
+
     try {
         const response = await axios.post(OLLAMA_API, {
-            model: "mistral", // Reemplaza con el modelo adecuado
-            prompt: `Pregunta: ${pregunta}\nContexto: ${contextoCompleto}`,
+            model: "mistral",
+            prompt: promptFinal,
             stream: false
         });
+
         if (response.data.response) {
             res.json({ respuesta: response.data.response });
         } else {
@@ -76,6 +106,8 @@ app.post("/preguntar", async (req, res) => {
         res.status(500).json({ error: "Error procesando la solicitud" });
     }
 });
+
+
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
